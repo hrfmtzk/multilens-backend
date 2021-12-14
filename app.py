@@ -4,7 +4,7 @@ import os
 import aws_cdk as cdk
 from dotenv import find_dotenv, load_dotenv
 
-from multilens.multilens_stack import MultilensStack
+from multilens.stacks.multilens_stack import MultilensStack
 
 load_dotenv(find_dotenv())
 

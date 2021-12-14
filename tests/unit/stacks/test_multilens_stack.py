@@ -6,7 +6,7 @@ import aws_cdk.assertions as assertions
 import pytest
 from pytest_snapshot.plugin import Snapshot
 
-from multilens.multilens_stack import MultilensStack
+from multilens.stacks.multilens_stack import MultilensStack
 
 
 class TestMultilensStack:

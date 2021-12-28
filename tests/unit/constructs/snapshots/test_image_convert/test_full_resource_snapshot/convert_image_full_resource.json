@@ -136,6 +136,22 @@
                   ]
                 ]
               }
+            },
+            {
+              "Action": [
+                "sqs:ReceiveMessage",
+                "sqs:ChangeMessageVisibility",
+                "sqs:GetQueueUrl",
+                "sqs:DeleteMessage",
+                "sqs:GetQueueAttributes"
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "ImageConvertJpeg4001FE44D6D",
+                  "Arn"
+                ]
+              }
             }
           ],
           "Version": "2012-10-17"
@@ -167,13 +183,13 @@
           "Variables": {
             "APP_FORMAT": "jpeg",
             "APP_RESIZE": "400",
-            "APP_USE_SQS": "False",
+            "APP_USE_SQS": "True",
             "LOG_LEVEL": "DEBUG",
             "POWERTOOLS_SERVICE_NAME": "ImageConvert",
             "BUCKET_NAME": {
               "Ref": "ImageConvertOutputBucket05C439E9"
             },
-            "SENTRY_DSN": ""
+            "SENTRY_DSN": "https://sentry.example.com"
           }
         },
         "Handler": "index.lambda_handler",
@@ -208,35 +224,74 @@
         "RetentionInDays": 30
       }
     },
-    "ImageConvertFunctionJpeg400AllowInvokeMultilensImageConvertTopic634F162C065D1F36": {
-      "Type": "AWS::Lambda::Permission",
+    "ImageConvertFunctionJpeg400SqsEventSourceTestImageConvertJpeg400945403E957EC53CD": {
+      "Type": "AWS::Lambda::EventSourceMapping",
       "Properties": {
-        "Action": "lambda:InvokeFunction",
         "FunctionName": {
+          "Ref": "ImageConvertFunctionJpeg400239BE46A"
+        },
+        "EventSourceArn": {
           "Fn::GetAtt": [
-            "ImageConvertFunctionJpeg400239BE46A",
+            "ImageConvertJpeg4001FE44D6D",
             "Arn"
           ]
-        },
-        "Principal": "sns.amazonaws.com",
-        "SourceArn": {
-          "Ref": "ImageConvertTopic9040C68E"
         }
       }
     },
-    "ImageConvertFunctionJpeg400Topic33580565": {
+    "ImageConvertJpeg4001FE44D6D": {
+      "Type": "AWS::SQS::Queue",
+      "UpdateReplacePolicy": "Delete",
+      "DeletionPolicy": "Delete"
+    },
+    "ImageConvertJpeg400Policy01296773": {
+      "Type": "AWS::SQS::QueuePolicy",
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sqs:SendMessage",
+              "Condition": {
+                "ArnEquals": {
+                  "aws:SourceArn": {
+                    "Ref": "ImageConvertTopic9040C68E"
+                  }
+                }
+              },
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "sns.amazonaws.com"
+              },
+              "Resource": {
+                "Fn::GetAtt": [
+                  "ImageConvertJpeg4001FE44D6D",
+                  "Arn"
+                ]
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "Queues": [
+          {
+            "Ref": "ImageConvertJpeg4001FE44D6D"
+          }
+        ]
+      }
+    },
+    "ImageConvertJpeg400TestImageConvertTopic2B0CABD45F58CDEF": {
       "Type": "AWS::SNS::Subscription",
       "Properties": {
-        "Protocol": "lambda",
+        "Protocol": "sqs",
         "TopicArn": {
           "Ref": "ImageConvertTopic9040C68E"
         },
         "Endpoint": {
           "Fn::GetAtt": [
-            "ImageConvertFunctionJpeg400239BE46A",
+            "ImageConvertJpeg4001FE44D6D",
             "Arn"
           ]
-        }
+        },
+        "RawMessageDelivery": true
       }
     },
     "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC": {

@@ -1,6 +1,6 @@
 {
   "Resources": {
-    "ImageConvertInputBucketNotifications72BEF3B2": {
+    "InputBucketNotificationsA82F925B": {
       "Type": "Custom::S3BucketNotifications",
       "Properties": {
         "ServiceToken": {
@@ -10,7 +10,7 @@
           ]
         },
         "BucketName": {
-          "Ref": "ImageConvertInputBucketAE332DB8"
+          "Ref": "InputBucket3BF8630A"
         },
         "NotificationConfiguration": {
           "TopicConfigurations": [
@@ -31,12 +31,12 @@
         "ImageConvertTopic9040C68E"
       ]
     },
-    "ImageConvertInputBucketAE332DB8": {
+    "InputBucket3BF8630A": {
       "Type": "AWS::S3::Bucket",
       "UpdateReplacePolicy": "Retain",
       "DeletionPolicy": "Retain"
     },
-    "ImageConvertOutputBucket05C439E9": {
+    "OutputBucket7114EB27": {
       "Type": "AWS::S3::Bucket",
       "UpdateReplacePolicy": "Retain",
       "DeletionPolicy": "Retain"
@@ -55,7 +55,7 @@
                 "ArnLike": {
                   "aws:SourceArn": {
                     "Fn::GetAtt": [
-                      "ImageConvertInputBucketAE332DB8",
+                      "InputBucket3BF8630A",
                       "Arn"
                     ]
                   }
@@ -128,7 +128,7 @@
                   [
                     {
                       "Fn::GetAtt": [
-                        "ImageConvertOutputBucket05C439E9",
+                        "OutputBucket7114EB27",
                         "Arn"
                       ]
                     },
@@ -168,10 +168,10 @@
             "APP_FORMAT": "jpeg",
             "APP_RESIZE": "400",
             "APP_USE_SQS": "False",
-            "LOG_LEVEL": "DEBUG",
+            "LOG_LEVEL": "INFO",
             "POWERTOOLS_SERVICE_NAME": "ImageConvert",
             "BUCKET_NAME": {
-              "Ref": "ImageConvertOutputBucket05C439E9"
+              "Ref": "OutputBucket7114EB27"
             },
             "SENTRY_DSN": ""
           }
@@ -208,7 +208,7 @@
         "RetentionInDays": 30
       }
     },
-    "ImageConvertFunctionJpeg400AllowInvokeMultilensImageConvertTopic634F162C065D1F36": {
+    "ImageConvertFunctionJpeg400AllowInvokeTestImageConvertTopic2B0CABD4B90724BC": {
       "Type": "AWS::Lambda::Permission",
       "Properties": {
         "Action": "lambda:InvokeFunction",

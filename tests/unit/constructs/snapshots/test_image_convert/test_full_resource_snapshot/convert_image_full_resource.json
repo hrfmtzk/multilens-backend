@@ -80,6 +80,258 @@
         ]
       }
     },
+    "ImageConvertFunctionOriginalOriginalServiceRoleCB372042": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    "ImageConvertFunctionOriginalOriginalServiceRoleDefaultPolicy17E35B1F": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*"
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "ImageConvertInputBucketAE332DB8",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "ImageConvertInputBucketAE332DB8",
+                          "Arn"
+                        ]
+                      },
+                      "/*"
+                    ]
+                  ]
+                }
+              ]
+            },
+            {
+              "Action": [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+                "s3:DeleteObject*",
+                "s3:PutObject",
+                "s3:Abort*"
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "ImageConvertOutputBucket05C439E9",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "ImageConvertOutputBucket05C439E9",
+                          "Arn"
+                        ]
+                      },
+                      "/*"
+                    ]
+                  ]
+                }
+              ]
+            },
+            {
+              "Action": [
+                "sqs:ReceiveMessage",
+                "sqs:ChangeMessageVisibility",
+                "sqs:GetQueueUrl",
+                "sqs:DeleteMessage",
+                "sqs:GetQueueAttributes"
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "ImageConvertOriginalOriginal63D7AB72",
+                  "Arn"
+                ]
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "PolicyName": "ImageConvertFunctionOriginalOriginalServiceRoleDefaultPolicy17E35B1F",
+        "Roles": [
+          {
+            "Ref": "ImageConvertFunctionOriginalOriginalServiceRoleCB372042"
+          }
+        ]
+      }
+    },
+    "ImageConvertFunctionOriginalOriginalC95BB891": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {},
+        "Role": {
+          "Fn::GetAtt": [
+            "ImageConvertFunctionOriginalOriginalServiceRoleCB372042",
+            "Arn"
+          ]
+        },
+        "Environment": {
+          "Variables": {
+            "APP_FORMAT": "original",
+            "APP_RESIZE": "original",
+            "APP_USE_SQS": "True",
+            "LOG_LEVEL": "DEBUG",
+            "POWERTOOLS_SERVICE_NAME": "ImageConvert",
+            "BUCKET_NAME": {
+              "Ref": "ImageConvertOutputBucket05C439E9"
+            },
+            "SENTRY_DSN": "https://sentry.example.com"
+          }
+        },
+        "Handler": "index.lambda_handler",
+        "MemorySize": 512,
+        "Runtime": "python3.9",
+        "Timeout": 15
+      },
+      "DependsOn": [
+        "ImageConvertFunctionOriginalOriginalServiceRoleDefaultPolicy17E35B1F",
+        "ImageConvertFunctionOriginalOriginalServiceRoleCB372042"
+      ]
+    },
+    "ImageConvertFunctionOriginalOriginalLogRetentionF2EC44DB": {
+      "Type": "Custom::LogRetention",
+      "Properties": {
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A",
+            "Arn"
+          ]
+        },
+        "LogGroupName": {
+          "Fn::Join": [
+            "",
+            [
+              "/aws/lambda/",
+              {
+                "Ref": "ImageConvertFunctionOriginalOriginalC95BB891"
+              }
+            ]
+          ]
+        },
+        "RetentionInDays": 30
+      }
+    },
+    "ImageConvertFunctionOriginalOriginalSqsEventSourceTestImageConvertOriginalOriginal8CD812A6DDB18288": {
+      "Type": "AWS::Lambda::EventSourceMapping",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "ImageConvertFunctionOriginalOriginalC95BB891"
+        },
+        "EventSourceArn": {
+          "Fn::GetAtt": [
+            "ImageConvertOriginalOriginal63D7AB72",
+            "Arn"
+          ]
+        }
+      }
+    },
+    "ImageConvertOriginalOriginal63D7AB72": {
+      "Type": "AWS::SQS::Queue",
+      "UpdateReplacePolicy": "Delete",
+      "DeletionPolicy": "Delete"
+    },
+    "ImageConvertOriginalOriginalPolicyF666F0D0": {
+      "Type": "AWS::SQS::QueuePolicy",
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sqs:SendMessage",
+              "Condition": {
+                "ArnEquals": {
+                  "aws:SourceArn": {
+                    "Ref": "ImageConvertTopic9040C68E"
+                  }
+                }
+              },
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "sns.amazonaws.com"
+              },
+              "Resource": {
+                "Fn::GetAtt": [
+                  "ImageConvertOriginalOriginal63D7AB72",
+                  "Arn"
+                ]
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "Queues": [
+          {
+            "Ref": "ImageConvertOriginalOriginal63D7AB72"
+          }
+        ]
+      }
+    },
+    "ImageConvertOriginalOriginalTestImageConvertTopic2B0CABD4D8872C1B": {
+      "Type": "AWS::SNS::Subscription",
+      "Properties": {
+        "Protocol": "sqs",
+        "TopicArn": {
+          "Ref": "ImageConvertTopic9040C68E"
+        },
+        "Endpoint": {
+          "Fn::GetAtt": [
+            "ImageConvertOriginalOriginal63D7AB72",
+            "Arn"
+          ]
+        },
+        "RawMessageDelivery": true
+      }
+    },
     "ImageConvertFunctionJpeg400ServiceRoleE7264150": {
       "Type": "AWS::IAM::Role",
       "Properties": {
@@ -326,6 +578,510 @@
         "Endpoint": {
           "Fn::GetAtt": [
             "ImageConvertJpeg4001FE44D6D",
+            "Arn"
+          ]
+        },
+        "RawMessageDelivery": true
+      }
+    },
+    "ImageConvertFunctionWebpOriginalServiceRoleDCD0E539": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    "ImageConvertFunctionWebpOriginalServiceRoleDefaultPolicy22B2B722": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*"
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "ImageConvertInputBucketAE332DB8",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "ImageConvertInputBucketAE332DB8",
+                          "Arn"
+                        ]
+                      },
+                      "/*"
+                    ]
+                  ]
+                }
+              ]
+            },
+            {
+              "Action": [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+                "s3:DeleteObject*",
+                "s3:PutObject",
+                "s3:Abort*"
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "ImageConvertOutputBucket05C439E9",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "ImageConvertOutputBucket05C439E9",
+                          "Arn"
+                        ]
+                      },
+                      "/*"
+                    ]
+                  ]
+                }
+              ]
+            },
+            {
+              "Action": [
+                "sqs:ReceiveMessage",
+                "sqs:ChangeMessageVisibility",
+                "sqs:GetQueueUrl",
+                "sqs:DeleteMessage",
+                "sqs:GetQueueAttributes"
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "ImageConvertWebpOriginalB23A3565",
+                  "Arn"
+                ]
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "PolicyName": "ImageConvertFunctionWebpOriginalServiceRoleDefaultPolicy22B2B722",
+        "Roles": [
+          {
+            "Ref": "ImageConvertFunctionWebpOriginalServiceRoleDCD0E539"
+          }
+        ]
+      }
+    },
+    "ImageConvertFunctionWebpOriginalA5B5395A": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {},
+        "Role": {
+          "Fn::GetAtt": [
+            "ImageConvertFunctionWebpOriginalServiceRoleDCD0E539",
+            "Arn"
+          ]
+        },
+        "Environment": {
+          "Variables": {
+            "APP_FORMAT": "webp",
+            "APP_RESIZE": "original",
+            "APP_USE_SQS": "True",
+            "LOG_LEVEL": "DEBUG",
+            "POWERTOOLS_SERVICE_NAME": "ImageConvert",
+            "BUCKET_NAME": {
+              "Ref": "ImageConvertOutputBucket05C439E9"
+            },
+            "SENTRY_DSN": "https://sentry.example.com"
+          }
+        },
+        "Handler": "index.lambda_handler",
+        "MemorySize": 512,
+        "Runtime": "python3.9",
+        "Timeout": 15
+      },
+      "DependsOn": [
+        "ImageConvertFunctionWebpOriginalServiceRoleDefaultPolicy22B2B722",
+        "ImageConvertFunctionWebpOriginalServiceRoleDCD0E539"
+      ]
+    },
+    "ImageConvertFunctionWebpOriginalLogRetention195DCFAB": {
+      "Type": "Custom::LogRetention",
+      "Properties": {
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A",
+            "Arn"
+          ]
+        },
+        "LogGroupName": {
+          "Fn::Join": [
+            "",
+            [
+              "/aws/lambda/",
+              {
+                "Ref": "ImageConvertFunctionWebpOriginalA5B5395A"
+              }
+            ]
+          ]
+        },
+        "RetentionInDays": 30
+      }
+    },
+    "ImageConvertFunctionWebpOriginalSqsEventSourceTestImageConvertWebpOriginal5957437A40A74129": {
+      "Type": "AWS::Lambda::EventSourceMapping",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "ImageConvertFunctionWebpOriginalA5B5395A"
+        },
+        "EventSourceArn": {
+          "Fn::GetAtt": [
+            "ImageConvertWebpOriginalB23A3565",
+            "Arn"
+          ]
+        }
+      }
+    },
+    "ImageConvertWebpOriginalB23A3565": {
+      "Type": "AWS::SQS::Queue",
+      "UpdateReplacePolicy": "Delete",
+      "DeletionPolicy": "Delete"
+    },
+    "ImageConvertWebpOriginalPolicyC7A427E0": {
+      "Type": "AWS::SQS::QueuePolicy",
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sqs:SendMessage",
+              "Condition": {
+                "ArnEquals": {
+                  "aws:SourceArn": {
+                    "Ref": "ImageConvertTopic9040C68E"
+                  }
+                }
+              },
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "sns.amazonaws.com"
+              },
+              "Resource": {
+                "Fn::GetAtt": [
+                  "ImageConvertWebpOriginalB23A3565",
+                  "Arn"
+                ]
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "Queues": [
+          {
+            "Ref": "ImageConvertWebpOriginalB23A3565"
+          }
+        ]
+      }
+    },
+    "ImageConvertWebpOriginalTestImageConvertTopic2B0CABD41F78B35E": {
+      "Type": "AWS::SNS::Subscription",
+      "Properties": {
+        "Protocol": "sqs",
+        "TopicArn": {
+          "Ref": "ImageConvertTopic9040C68E"
+        },
+        "Endpoint": {
+          "Fn::GetAtt": [
+            "ImageConvertWebpOriginalB23A3565",
+            "Arn"
+          ]
+        },
+        "RawMessageDelivery": true
+      }
+    },
+    "ImageConvertFunctionWebp400ServiceRoleCDB01A22": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    "ImageConvertFunctionWebp400ServiceRoleDefaultPolicyCF220689": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*"
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "ImageConvertInputBucketAE332DB8",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "ImageConvertInputBucketAE332DB8",
+                          "Arn"
+                        ]
+                      },
+                      "/*"
+                    ]
+                  ]
+                }
+              ]
+            },
+            {
+              "Action": [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+                "s3:DeleteObject*",
+                "s3:PutObject",
+                "s3:Abort*"
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "ImageConvertOutputBucket05C439E9",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "ImageConvertOutputBucket05C439E9",
+                          "Arn"
+                        ]
+                      },
+                      "/*"
+                    ]
+                  ]
+                }
+              ]
+            },
+            {
+              "Action": [
+                "sqs:ReceiveMessage",
+                "sqs:ChangeMessageVisibility",
+                "sqs:GetQueueUrl",
+                "sqs:DeleteMessage",
+                "sqs:GetQueueAttributes"
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "ImageConvertWebp400CBF0EA7B",
+                  "Arn"
+                ]
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "PolicyName": "ImageConvertFunctionWebp400ServiceRoleDefaultPolicyCF220689",
+        "Roles": [
+          {
+            "Ref": "ImageConvertFunctionWebp400ServiceRoleCDB01A22"
+          }
+        ]
+      }
+    },
+    "ImageConvertFunctionWebp40038D75207": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {},
+        "Role": {
+          "Fn::GetAtt": [
+            "ImageConvertFunctionWebp400ServiceRoleCDB01A22",
+            "Arn"
+          ]
+        },
+        "Environment": {
+          "Variables": {
+            "APP_FORMAT": "webp",
+            "APP_RESIZE": "400",
+            "APP_USE_SQS": "True",
+            "LOG_LEVEL": "DEBUG",
+            "POWERTOOLS_SERVICE_NAME": "ImageConvert",
+            "BUCKET_NAME": {
+              "Ref": "ImageConvertOutputBucket05C439E9"
+            },
+            "SENTRY_DSN": "https://sentry.example.com"
+          }
+        },
+        "Handler": "index.lambda_handler",
+        "MemorySize": 512,
+        "Runtime": "python3.9",
+        "Timeout": 15
+      },
+      "DependsOn": [
+        "ImageConvertFunctionWebp400ServiceRoleDefaultPolicyCF220689",
+        "ImageConvertFunctionWebp400ServiceRoleCDB01A22"
+      ]
+    },
+    "ImageConvertFunctionWebp400LogRetention465EE3AD": {
+      "Type": "Custom::LogRetention",
+      "Properties": {
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A",
+            "Arn"
+          ]
+        },
+        "LogGroupName": {
+          "Fn::Join": [
+            "",
+            [
+              "/aws/lambda/",
+              {
+                "Ref": "ImageConvertFunctionWebp40038D75207"
+              }
+            ]
+          ]
+        },
+        "RetentionInDays": 30
+      }
+    },
+    "ImageConvertFunctionWebp400SqsEventSourceTestImageConvertWebp4006A1B1771C5AA4939": {
+      "Type": "AWS::Lambda::EventSourceMapping",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "ImageConvertFunctionWebp40038D75207"
+        },
+        "EventSourceArn": {
+          "Fn::GetAtt": [
+            "ImageConvertWebp400CBF0EA7B",
+            "Arn"
+          ]
+        }
+      }
+    },
+    "ImageConvertWebp400CBF0EA7B": {
+      "Type": "AWS::SQS::Queue",
+      "UpdateReplacePolicy": "Delete",
+      "DeletionPolicy": "Delete"
+    },
+    "ImageConvertWebp400PolicyD1B45275": {
+      "Type": "AWS::SQS::QueuePolicy",
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sqs:SendMessage",
+              "Condition": {
+                "ArnEquals": {
+                  "aws:SourceArn": {
+                    "Ref": "ImageConvertTopic9040C68E"
+                  }
+                }
+              },
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "sns.amazonaws.com"
+              },
+              "Resource": {
+                "Fn::GetAtt": [
+                  "ImageConvertWebp400CBF0EA7B",
+                  "Arn"
+                ]
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "Queues": [
+          {
+            "Ref": "ImageConvertWebp400CBF0EA7B"
+          }
+        ]
+      }
+    },
+    "ImageConvertWebp400TestImageConvertTopic2B0CABD45C89EB9B": {
+      "Type": "AWS::SNS::Subscription",
+      "Properties": {
+        "Protocol": "sqs",
+        "TopicArn": {
+          "Ref": "ImageConvertTopic9040C68E"
+        },
+        "Endpoint": {
+          "Fn::GetAtt": [
+            "ImageConvertWebp400CBF0EA7B",
             "Arn"
           ]
         },

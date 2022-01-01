@@ -76,6 +76,7 @@ class ImageConvert(Construct):
             function = self._add_convert_function(
                 convert_props=props,
                 use_sqs=use_sqs,
+                input_bucket=self.input_bucket,
                 output_bucket=self.output_bucket,
                 tracing=lambda_tracing,
                 log_level=lambda_log_level,
@@ -90,13 +91,14 @@ class ImageConvert(Construct):
         self,
         convert_props: ConvertProps,
         use_sqs: bool,
+        input_bucket: s3.Bucket,
         output_bucket: s3.Bucket,
         tracing: bool = False,
         log_level: typing.Optional[str] = None,
         sentry_dsn: typing.Optional[str] = None,
     ) -> lambda_.Function:
         construct_id = f"Function{convert_props.camel_name()}"
-        directory_name = f"image_convert.{convert_props.snake_name()}"
+        directory_name = f"image_convert_function"
         log_level = log_level or "INFO"
         sentry_dsn = sentry_dsn or ""
         function = lambda_python.PythonFunction(
@@ -115,13 +117,15 @@ class ImageConvert(Construct):
                 "BUCKET_NAME": output_bucket.bucket_name,
                 "SENTRY_DSN": sentry_dsn,
             },
+            memory_size=512,
             timeout=cdk.Duration.seconds(15),
             log_retention=logs.RetentionDays.ONE_MONTH,
             tracing=(
                 lambda_.Tracing.ACTIVE if tracing else lambda_.Tracing.DISABLED
             ),
         )
-        output_bucket.grant_put(function)
+        input_bucket.grant_read(function)
+        output_bucket.grant_read_write(function)
 
         return function
 

@@ -7,6 +7,7 @@ import pytest
 from pytest_snapshot.plugin import Snapshot
 
 from multilens.stacks.multilens_stack import MultilensStack
+from tests.helpers import ignore_template_assets
 
 
 class TestMultilensStack:
@@ -33,7 +34,9 @@ class TestMultilensStack:
             "Multilens",
             env=env,
         )
-        template_json = assertions.Template.from_stack(stack).to_json()
+        template_json = ignore_template_assets(
+            assertions.Template.from_stack(stack).to_json()
+        )
 
         snapshot.assert_match(
             json.dumps(template_json, indent=2),

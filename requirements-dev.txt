@@ -1,9 +1,10 @@
 -r requirements.txt
--r multilens/constructs/image_convert.jpeg_400/requirements.txt
+-r multilens/constructs/image_convert_function/requirements.txt
 
 black
 flake8
 isort
+moto[all]
 pytest==6.2.5
 pytest-cov
 pytest-mock

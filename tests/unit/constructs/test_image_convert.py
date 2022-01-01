@@ -10,6 +10,7 @@ from aws_cdk import (
 from pytest_snapshot.plugin import Snapshot
 
 from multilens.constructs.image_convert import ImageConvert
+from tests.helpers import ignore_template_assets
 
 
 class TestImageConvert:
@@ -41,7 +42,9 @@ class TestImageConvert:
             lambda_log_level="DEBUG",
             lambda_sentry_dsn="https://sentry.example.com",
         )
-        template_json = assertions.Template.from_stack(stack).to_json()
+        template_json = ignore_template_assets(
+            assertions.Template.from_stack(stack).to_json()
+        )
 
         snapshot.assert_match(
             json.dumps(template_json, indent=2),
@@ -61,7 +64,9 @@ class TestImageConvert:
             input_bucket=input_bucket,
             output_bucket=output_bucket,
         )
-        template_json = assertions.Template.from_stack(stack).to_json()
+        template_json = ignore_template_assets(
+            assertions.Template.from_stack(stack).to_json()
+        )
 
         snapshot.assert_match(
             json.dumps(template_json, indent=2),

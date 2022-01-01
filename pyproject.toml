@@ -12,7 +12,7 @@ combine_as_imports = true
 testpaths = [
     "tests",
 ]
-addopts = "-vvvv --cov=multilens --cov=src --cov-report=term-missing"
+addopts = "-vvvv --cov=multilens --cov-report=term-missing"
 junit_family = "xunit2"
 
 [tool.mypy]

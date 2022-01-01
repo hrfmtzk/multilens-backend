@@ -37,8 +37,8 @@ class TestImageConvert:
             stack,
             "ImageConvert",
             use_sqs=True,
-            input_bukect_props=s3.BucketProps(),
-            output_bukect_props=s3.BucketProps(),
+            input_bucket_props=s3.BucketProps(),
+            output_bucket_props=s3.BucketProps(),
             lambda_log_level="DEBUG",
             lambda_sentry_dsn="https://sentry.example.com",
         )

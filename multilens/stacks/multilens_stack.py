@@ -15,7 +15,7 @@ class MultilensStack(Stack):
             self,
             "ImageConvert",
             use_sqs=False,
-            input_bukect_props=s3.BucketProps(),
-            output_bukect_props=s3.BucketProps(),
+            input_bucket_props=s3.BucketProps(),
+            output_bucket_props=s3.BucketProps(),
             lambda_log_level="DEBUG",
         )

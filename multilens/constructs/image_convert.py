@@ -39,9 +39,9 @@ class ImageConvert(Construct):
         id: str,
         use_sqs: bool = False,
         input_bucket: typing.Optional[s3.Bucket] = None,
-        input_bukect_props: typing.Optional[s3.BucketProps] = None,
+        input_bucket_props: typing.Optional[s3.BucketProps] = None,
         output_bucket: typing.Optional[s3.Bucket] = None,
-        output_bukect_props: typing.Optional[s3.BucketProps] = None,
+        output_bucket_props: typing.Optional[s3.BucketProps] = None,
         lambda_tracing: bool = False,
         lambda_log_level: typing.Optional[str] = None,
         lambda_sentry_dsn: typing.Optional[str] = None,
@@ -51,12 +51,12 @@ class ImageConvert(Construct):
         self.input_bucket = input_bucket or s3.Bucket(
             self,
             "InputBucket",
-            **input_bukect_props._values,
+            **input_bucket_props._values,
         )
         self.output_bucket = output_bucket or s3.Bucket(
             self,
             "OutputBucket",
-            **output_bukect_props._values,
+            **output_bucket_props._values,
         )
 
         self.topic = sns.Topic(

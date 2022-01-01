@@ -69,7 +69,10 @@ class ImageConvert(Construct):
         )
 
         convert_props = [
+            ConvertProps(format="original", resize="original"),
             ConvertProps(format="jpeg", resize="400"),
+            ConvertProps(format="webp", resize="original"),
+            ConvertProps(format="webp", resize="400"),
         ]
 
         for props in convert_props:

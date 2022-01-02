@@ -1,4 +1,5 @@
 import typing
+from dataclasses import dataclass
 from pathlib import Path
 
 import aws_cdk as cdk
@@ -8,6 +9,8 @@ from aws_cdk import (
     aws_lambda_python_alpha as lambda_python,
     aws_logs as logs,
     aws_s3 as s3,
+    aws_secretsmanager as sm,
+    aws_ssm as ssm,
 )
 from constructs import Construct
 
@@ -15,13 +18,18 @@ from constructs import Construct
 here = Path(__file__).absolute().parent
 
 
+@dataclass
+class LineApiCredential:
+    access_token: str
+    secret: str
+
+
 class LineApi(Construct):
     def __init__(
         self,
         scope: Construct,
         id: str,
-        line_channel_access_token: str,
-        line_channel_secret: str,
+        line_credential: LineApiCredential,
         bucket: typing.Optional[s3.Bucket] = None,
         bucket_props: typing.Optional[s3.BucketProps] = None,
         lambda_tracing: bool = False,
@@ -29,6 +37,8 @@ class LineApi(Construct):
         lambda_sentry_dsn: typing.Optional[str] = None,
     ) -> None:
         super().__init__(scope, id)
+        lambda_log_level = lambda_log_level or "INFO"
+        lambda_sentry_dsn = lambda_sentry_dsn or ""
 
         self.bucket = bucket or s3.Bucket(
             self,
@@ -44,8 +54,8 @@ class LineApi(Construct):
             handler="lambda_handler",
             runtime=lambda_.Runtime.PYTHON_3_9,
             environment={
-                "CHANNEL_ACCESS_TOKEN": line_channel_access_token,
-                "CHANNEL_SECRET": line_channel_secret,
+                "CHANNEL_ACCESS_TOKEN": line_credential.access_token,
+                "CHANNEL_SECRET": line_credential.secret,
                 "LOG_LEVEL": lambda_log_level,
                 "POWERTOOLS_SERVICE_NAME": "LineApi",
                 "BUCKET_NAME": self.bucket.bucket_name,

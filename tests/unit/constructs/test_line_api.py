@@ -9,7 +9,7 @@ from aws_cdk import (
 )
 from pytest_snapshot.plugin import Snapshot
 
-from multilens.constructs.line_api import LineApi
+from multilens.constructs.line_api import LineApi, LineApiCredential
 from tests.helpers import ignore_template_assets
 
 
@@ -36,8 +36,10 @@ class TestLineApi:
         LineApi(
             stack,
             "LineApi",
-            line_channel_access_token="access_token",
-            line_channel_secret="secret",
+            line_credential=LineApiCredential(
+                access_token="access_token",
+                secret="secret",
+            ),
             bucket_props=s3.BucketProps(),
             lambda_log_level="DEBUG",
             lambda_sentry_dsn="https://sentry.example.com",
@@ -59,8 +61,10 @@ class TestLineApi:
         LineApi(
             stack,
             "LineApi",
-            line_channel_access_token="access_token",
-            line_channel_secret="secret",
+            line_credential=LineApiCredential(
+                access_token="access_token",
+                secret="secret",
+            ),
             bucket=bucket,
             lambda_log_level="DEBUG",
             lambda_sentry_dsn="https://sentry.example.com",

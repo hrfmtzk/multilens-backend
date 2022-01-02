@@ -6,6 +6,7 @@ import aws_cdk.assertions as assertions
 import pytest
 from pytest_snapshot.plugin import Snapshot
 
+from multilens.constructs.line_api import LineApiCredential
 from multilens.stacks.multilens_stack import MultilensStack
 from tests.helpers import ignore_template_assets
 
@@ -32,6 +33,10 @@ class TestMultilensStack:
         stack = MultilensStack(
             app,
             "Multilens",
+            line_credential=LineApiCredential(
+                access_token="access_token",
+                secret="secret",
+            ),
             env=env,
         )
         template_json = ignore_template_assets(

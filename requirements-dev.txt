@@ -1,5 +1,6 @@
 -r requirements.txt
 -r multilens/constructs/image_convert_function/requirements.txt
+-r multilens/constructs/line_api_callback_function/requirements.txt
 
 black
 flake8

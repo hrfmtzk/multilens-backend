@@ -16,10 +16,10 @@ from multilens.constructs.image_convert_function.index import (
     SqsImageConvertProcessor,
     lambda_handler,
 )
-from tests.helpers import MotoTestClass
+from tests.helpers import AwsTestClass
 
 
-class TestImageConvertProcessor(MotoTestClass):
+class TestImageConvertProcessor(AwsTestClass):
     @pytest.fixture
     def s3_record(self, s3_client) -> typing.Dict[str, typing.Any]:
         bucket_name = "test-input-bucket"
@@ -192,7 +192,7 @@ class TestSqsImageConvertProcessor:
         target._process_s3_records.assert_called_once_with([])
 
 
-class TestImageConvert(MotoTestClass):
+class TestImageConvert(AwsTestClass):
     @pytest.fixture
     def target(
         self,

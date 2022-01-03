@@ -38,8 +38,71 @@ if SENTRY_DSN:
     )
 
 
-line_bot_api = LineBotApi(os.environ["CHANNEL_ACCESS_TOKEN"])
-handler = WebhookHandler(os.environ["CHANNEL_SECRET"])
+class LineApiHandler:
+    def __init__(self, access_token: str, secret: str) -> None:
+        self.line_bot_api = LineBotApi(access_token)
+        self.handler = WebhookHandler(secret)
+
+        self._register_handlers()
+
+    def _register_handlers(self) -> None:
+        self._wrap_register(
+            self._handle_text_message,
+            MessageEvent,
+            TextMessage,
+        )
+        self._wrap_register(
+            self._handle_image_message,
+            MessageEvent,
+            ImageMessage,
+        )
+        self.handler._default = self._handle_default
+
+    def _wrap_register(
+        self,
+        func: typing.Callable[[typing.Any], None],
+        event,
+        message=None,
+    ) -> None:
+        def wrap(e: typing.Any) -> None:
+            func(e)
+
+        self.handler.add(event, message=message)(wrap)
+
+    def _handle_text_message(self, event: MessageEvent) -> None:
+        # Echo
+        self.line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(text=event.message.text),
+        )
+
+    def _handle_image_message(self, event: MessageEvent) -> None:
+        logger.debug(event.as_json_dict())
+        message_id = event.message.id
+        image_id = f"L{message_id}"
+        user_id = event.source.user_id
+        unix_time = event.timestamp / 1000.0
+
+        object_key = f"original/{user_id}/{image_id}"
+        message_content = self.line_bot_api.get_message_content(message_id)
+
+        s3 = boto3.client("s3")
+        s3.upload_fileobj(
+            Fileobj=BytesIO(message_content.content),
+            Bucket=os.getenv("BUCKET_NAME"),
+            Key=object_key,
+            ExtraArgs={
+                "ContentType": message_content.content_type,
+                "Metadata": {
+                    "UserId": user_id,
+                    "ImageId": image_id,
+                    "Created": str(unix_time),
+                },
+            },
+        )
+
+    def _handle_default(self, event) -> None:
+        logger.debug(event.as_json_dict())
 
 
 @app.post("/callback")
@@ -48,8 +111,13 @@ def post_handler():
     signature = app.current_event.get_header_value("X-Line-Signature")
     body = app.current_event.body
 
+    line_api = LineApiHandler(
+        access_token=os.getenv("CHANNEL_ACCESS_TOKEN"),
+        secret=os.getenv("CHANNEL_SECRET"),
+    )
+
     try:
-        handler.handle(body, signature)
+        line_api.handler.handle(body, signature)
     except InvalidSignatureError:
         return Response(
             status_code=400,
@@ -58,46 +126,6 @@ def post_handler():
         )
 
     return {"message": "OK"}
-
-
-@handler.add(MessageEvent, message=TextMessage)
-def handle_text_message(event: MessageEvent) -> None:
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text=event.message.text),
-    )
-
-
-@handler.add(MessageEvent, message=ImageMessage)
-def handle_image_message(event: MessageEvent) -> None:
-    logger.debug(event.as_json_dict())
-    message_id = event.message.id
-    image_id = f"L{message_id}"
-    user_id = event.source.user_id
-    unix_time = event.timestamp / 1000.0
-
-    object_key = f"original/{user_id}/{image_id}"
-    message_content = line_bot_api.get_message_content(message_id)
-
-    s3 = boto3.client("s3")
-    s3.upload_fileobj(
-        Fileobj=BytesIO(message_content.content),
-        Bucket=os.getenv("BUCKET_NAME"),
-        Key=object_key,
-        ExtraArgs={
-            "ContentType": message_content.content_type,
-            "Metadata": {
-                "UserId": user_id,
-                "ImageId": image_id,
-                "Created": str(unix_time),
-            },
-        },
-    )
-
-
-@handler.default()
-def handle_default(event) -> None:
-    logger.debug(event.as_json_dict())
 
 
 @logger.inject_lambda_context(

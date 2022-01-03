@@ -1,4 +1,5 @@
 import copy
+import json
 import os
 import typing
 
@@ -33,7 +34,7 @@ class MockLambdaContext(LambdaContext):
         self._aws_request_id = "52fdfc07-2182-154f-163f-5f0f9a621d72"
 
 
-class MotoTestClass:
+class AwsTestClass:
     @pytest.fixture
     def aws_credentials(self) -> None:
         os.environ["AWS_ACCESS_KEY_ID"] = "testing"
@@ -51,3 +52,17 @@ class MotoTestClass:
     @pytest.fixture
     def lambda_context(self) -> LambdaContext:
         return MockLambdaContext()
+
+    def assert_lambda_response(
+        self,
+        response: typing.Dict[str, typing.Any],
+        status_code: typing.Optional[int] = None,
+        content_type: typing.Optional[str] = None,
+        json_body: typing.Optional[typing.Dict[str, typing.Any]] = None,
+    ) -> None:
+        if status_code:
+            assert response["statusCode"] == status_code
+        if content_type:
+            assert response["headers"]["Content-Type"] == content_type
+        if json_body:
+            assert json.loads(response["body"]) == json_body

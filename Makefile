@@ -1,9 +1,9 @@
 all:	test
 
-test: unittest lint type
+test: pep8 lint type unittest
 
-unittest:
-	pytest
+pep8:
+	flake8 multilens tests
 
 lint:
 	black --check multilens tests
@@ -11,3 +11,6 @@ lint:
 
 type:
 	mypy multilens tests
+
+unittest:
+	pytest

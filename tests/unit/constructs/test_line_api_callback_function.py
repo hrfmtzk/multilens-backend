@@ -1,4 +1,3 @@
-import json
 import os
 import typing
 
@@ -94,7 +93,7 @@ class TestLineApi(AwsTestClass):
             "pathParameters": {},
             "stageVariables": {},
             "headers": {
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",  # noqa
                 "Accept-Encoding": "gzip, deflate, sdch",
                 "Accept-Language": "en-US,en;q=0.8",
                 "Cache-Control": "max-age=0",
@@ -107,8 +106,8 @@ class TestLineApi(AwsTestClass):
                 "Host": "1234567890.execute-api.us-east-1.amazonaws.com",
                 "Upgrade-Insecure-Requests": "1",
                 "User-Agent": "Custom User Agent String",
-                "Via": "1.1 08f323deadbeefa7af34d5feb414ce27.cloudfront.net (CloudFront)",
-                "X-Amz-Cf-Id": "cDehVQoZnx43VYQb9j2-nvCh-9z396Uhbp027Y2JvkCPNLmGJHqlaA==",
+                "Via": "1.1 08f323deadbeefa7af34d5feb414ce27.cloudfront.net (CloudFront)",  # noqa
+                "X-Amz-Cf-Id": "cDehVQoZnx43VYQb9j2-nvCh-9z396Uhbp027Y2JvkCPNLmGJHqlaA==",  # noqa
                 "X-Forwarded-For": "127.0.0.1, 127.0.0.2",
                 "X-Forwarded-Port": "443",
                 "X-Forwarded-Proto": "https",
@@ -116,7 +115,7 @@ class TestLineApi(AwsTestClass):
             },
             "multiValueHeaders": {
                 "Accept": [
-                    "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+                    "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"  # noqa
                 ],
                 "Accept-Encoding": ["gzip, deflate, sdch"],
                 "Accept-Language": ["en-US,en;q=0.8"],
@@ -131,7 +130,7 @@ class TestLineApi(AwsTestClass):
                 "Upgrade-Insecure-Requests": ["1"],
                 "User-Agent": ["Custom User Agent String"],
                 "Via": [
-                    "1.1 08f323deadbeefa7af34d5feb414ce27.cloudfront.net (CloudFront)"
+                    "1.1 08f323deadbeefa7af34d5feb414ce27.cloudfront.net (CloudFront)"  # noqa
                 ],
                 "X-Amz-Cf-Id": [
                     "cDehVQoZnx43VYQb9j2-nvCh-9z396Uhbp027Y2JvkCPNLmGJHqlaA=="
@@ -180,7 +179,7 @@ class TestLineApi(AwsTestClass):
         mocker: MockerFixture,
     ) -> None:
         mocker.patch(
-            "multilens.constructs.line_api_callback_function.index.LineApiHandler"
+            "multilens.constructs.line_api_callback_function.index.LineApiHandler"  # noqa
         )
 
         response = target(lambda_event, lambda_context)
@@ -205,7 +204,7 @@ class TestLineApi(AwsTestClass):
         mocked_instance = mocker.Mock()
         mocked_instance.handler.handle.side_effect = InvalidSignatureError
         mocked_class = mocker.patch(
-            "multilens.constructs.line_api_callback_function.index.LineApiHandler"
+            "multilens.constructs.line_api_callback_function.index.LineApiHandler"  # noqa
         )
         mocked_class.return_value = mocked_instance
 

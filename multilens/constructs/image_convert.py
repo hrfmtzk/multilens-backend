@@ -107,7 +107,7 @@ class ImageConvert(Construct):
         sentry_dsn: typing.Optional[str] = None,
     ) -> lambda_.Function:
         construct_id = f"Function{convert_props.camel_name()}"
-        directory_name = f"image_convert_function"
+        directory_name = "image_convert_function"
         log_level = log_level or "INFO"
         sentry_dsn = sentry_dsn or ""
         function = lambda_python.PythonFunction(

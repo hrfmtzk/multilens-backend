@@ -15,7 +15,7 @@ class MultilensStack(Stack):
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        line_api = LineApi(
+        LineApi(
             self,
             "LineApi",
             line_credential=line_credential,
@@ -23,7 +23,7 @@ class MultilensStack(Stack):
             lambda_log_level="DEBUG",
         )
 
-        image_convert = ImageConvert(
+        ImageConvert(
             self,
             "ImageConvert",
             use_sqs=False,

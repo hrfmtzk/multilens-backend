@@ -1,7 +1,4 @@
-from aws_cdk import (
-    aws_s3 as s3,
-    Stack,
-)
+from aws_cdk import Stack, aws_s3 as s3
 from constructs import Construct
 
 from multilens.constructs.image_convert import ImageConvert

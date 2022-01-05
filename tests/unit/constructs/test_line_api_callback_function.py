@@ -1,25 +1,25 @@
 import json
 import os
 import typing
+
+import pytest
 from aws_lambda_powertools.utilities.typing.lambda_context import LambdaContext
 from linebot.exceptions import InvalidSignatureError
 from linebot.models.events import MessageEvent
 from linebot.models.messages import ImageMessage, TextMessage
 from linebot.models.sources import SourceUser
+from pytest_mock import MockerFixture
 
-import pytest
 from multilens.constructs.line_api_callback_function.index import (
     LineApiHandler,
     lambda_handler,
 )
-from pytest_mock import MockerFixture
-
 from tests.helpers import AwsTestClass
 
 
 class TestLineApiHandler(AwsTestClass):
     @pytest.fixture
-    def bucket_name(self, s3_client) -> str:
+    def bucket_name(self, s3_client) -> typing.Generator[str, None, None]:
         bucket_name = "test-bucket"
         s3_client.create_bucket(Bucket=bucket_name)
         os.environ["BUCKET_NAME"] = bucket_name

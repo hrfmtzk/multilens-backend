@@ -14,7 +14,6 @@ from aws_cdk import (
 )
 from constructs import Construct
 
-
 here = Path(__file__).absolute().parent
 
 
@@ -40,10 +39,13 @@ class LineApi(Construct):
         lambda_log_level = lambda_log_level or "INFO"
         lambda_sentry_dsn = lambda_sentry_dsn or ""
 
+        if bucket is None and bucket_props is None:
+            raise ValueError("requires `bucket` or `bucket_props`")
+
         self.bucket = bucket or s3.Bucket(
             self,
             "Bucket",
-            **bucket_props._values,
+            **bucket_props._values,  # type: ignore
         )
 
         self.callback_function = lambda_python.PythonFunction(

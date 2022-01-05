@@ -1,0 +1,41 @@
+
+name: CDK application test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install aws-cdk
+        run: npm install -g aws-cdk
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - name: Install dependencies
+        run: |
+          python -m pip install -U pip
+          pip install -r requirements-dev.txt
+      - name: Check PEP8
+        run: |
+          flake8 multilens tests
+      - name: Check format
+        run: |
+          black --check multilens tests
+          isort --check multilens tests
+      - name: Check typing
+        run: |
+          mypy multilens tests
+      - name: Test with pytest
+        run: |
+          pytest
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          fail_ci_if_error: true

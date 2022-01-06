@@ -4,18 +4,17 @@ from pathlib import Path
 
 import aws_cdk as cdk
 from aws_cdk import (
-    aws_s3 as s3,
-    aws_s3_notifications as notifications,
-    aws_sns_subscriptions as subscriptions,
     aws_lambda as lambda_,
     aws_lambda_event_sources as event_source,
     aws_lambda_python_alpha as lambda_python,
     aws_logs as logs,
+    aws_s3 as s3,
+    aws_s3_notifications as notifications,
     aws_sns as sns,
+    aws_sns_subscriptions as subscriptions,
     aws_sqs as sqs,
 )
 from constructs import Construct
-
 
 here = Path(__file__).absolute().parent
 
@@ -48,15 +47,22 @@ class ImageConvert(Construct):
     ) -> None:
         super().__init__(scope, id)
 
+        if input_bucket is None and input_bucket_props is None:
+            raise ValueError("requires `intput_bucket` or `input_bucket_props`")
+        if output_bucket is None and output_bucket_props is None:
+            raise ValueError(
+                "requires `output_bucket` or `output_bucket_props`"
+            )
+
         self.input_bucket = input_bucket or s3.Bucket(
             self,
             "InputBucket",
-            **input_bucket_props._values,
+            **input_bucket_props._values,  # type: ignore
         )
         self.output_bucket = output_bucket or s3.Bucket(
             self,
             "OutputBucket",
-            **output_bucket_props._values,
+            **output_bucket_props._values,  # type: ignore
         )
 
         self.topic = sns.Topic(
@@ -101,7 +107,7 @@ class ImageConvert(Construct):
         sentry_dsn: typing.Optional[str] = None,
     ) -> lambda_.Function:
         construct_id = f"Function{convert_props.camel_name()}"
-        directory_name = f"image_convert_function"
+        directory_name = "image_convert_function"
         log_level = log_level or "INFO"
         sentry_dsn = sentry_dsn or ""
         function = lambda_python.PythonFunction(

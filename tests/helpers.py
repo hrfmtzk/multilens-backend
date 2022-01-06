@@ -10,8 +10,8 @@ from moto import mock_s3
 
 
 def ignore_template_assets(
-    template_json: typing.Dict[str, typing.Any]
-) -> typing.Dict[str, typing.Any]:
+    template_json: typing.Mapping[str, typing.Any]
+) -> typing.Mapping[str, typing.Any]:
     template = copy.deepcopy(template_json)
     for resource in template["Resources"].values():
         if "Code" not in resource.get("Properties", {}):

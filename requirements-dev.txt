@@ -6,6 +6,7 @@ black
 flake8
 isort
 moto[all]
+mypy
 pytest==6.2.5
 pytest-cov
 pytest-mock

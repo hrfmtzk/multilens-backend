@@ -9,11 +9,8 @@ from aws_cdk import (
     aws_lambda_python_alpha as lambda_python,
     aws_logs as logs,
     aws_s3 as s3,
-    aws_secretsmanager as sm,
-    aws_ssm as ssm,
 )
 from constructs import Construct
-
 
 here = Path(__file__).absolute().parent
 
@@ -40,10 +37,13 @@ class LineApi(Construct):
         lambda_log_level = lambda_log_level or "INFO"
         lambda_sentry_dsn = lambda_sentry_dsn or ""
 
+        if bucket is None and bucket_props is None:
+            raise ValueError("requires `bucket` or `bucket_props`")
+
         self.bucket = bucket or s3.Bucket(
             self,
             "Bucket",
-            **bucket_props._values,
+            **bucket_props._values,  # type: ignore
         )
 
         self.callback_function = lambda_python.PythonFunction(
@@ -85,7 +85,7 @@ class LineApi(Construct):
                 access_log_destination=apigateway.LogGroupLogDestination(
                     self.access_log
                 ),
-                access_log_format=apigateway.AccessLogFormat.json_with_standard_fields(
+                access_log_format=apigateway.AccessLogFormat.json_with_standard_fields(  # noqa
                     caller=False,
                     http_method=True,
                     ip=True,

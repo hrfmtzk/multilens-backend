@@ -1,4 +1,5 @@
 import json
+import os
 import typing
 from hashlib import md5
 from io import SEEK_SET, BytesIO
@@ -122,7 +123,7 @@ class TestSnsImageConvertProcessor:
         target: SnsImageConvertProcessor,
         mocker: MockerFixture,
     ) -> None:
-        s3_event = {"Records": []}
+        s3_event: typing.Dict[str, typing.Any] = {"Records": []}
         records = [
             {
                 "EventSource": "aws:sns",
@@ -146,11 +147,14 @@ class TestSnsImageConvertProcessor:
                 },
             },
         ]
-        target._process_s3_records = mocker.Mock()
+        mocked_process_s3_record = mocker.patch.object(
+            target=target,
+            attribute="_process_s3_records",
+        )
 
         target.process_records(records=records)
 
-        target._process_s3_records.assert_called_once_with([])
+        mocked_process_s3_record.assert_called_once_with([])
 
 
 class TestSqsImageConvertProcessor:
@@ -165,7 +169,7 @@ class TestSqsImageConvertProcessor:
         target: SqsImageConvertProcessor,
         mocker: MockerFixture,
     ) -> None:
-        s3_event = {"Records": []}
+        s3_event: typing.Dict[str, typing.Any] = {"Records": []}
         body = json.dumps(s3_event)
         records = [
             {
@@ -185,11 +189,14 @@ class TestSqsImageConvertProcessor:
                 "awsRegion": "us-east-1",
             },
         ]
-        target._process_s3_records = mocker.Mock()
+        mocked_process_s3_record = mocker.patch.object(
+            target=target,
+            attribute="_process_s3_records",
+        )
 
         target.process_records(records=records)
 
-        target._process_s3_records.assert_called_once_with([])
+        mocked_process_s3_record.assert_called_once_with([])
 
 
 class TestImageConvert(AwsTestClass):
@@ -207,7 +214,8 @@ class TestImageConvert(AwsTestClass):
         lambda_context: LambdaContext,
         mocker: MockerFixture,
     ) -> None:
-        lambda_event = {"Records": []}
+        os.environ["BUCKET_NAME"] = "test-bucket"
+        lambda_event: typing.Dict[str, typing.Any] = {"Records": []}
         mocker.patch(
             "multilens.constructs.image_convert_function.index.SnsImageConvertProcessor"
         )

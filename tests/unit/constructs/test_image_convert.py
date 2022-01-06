@@ -4,9 +4,7 @@ import os
 import aws_cdk as cdk
 import aws_cdk.assertions as assertions
 import pytest
-from aws_cdk import (
-    aws_s3 as s3,
-)
+from aws_cdk import aws_s3 as s3
 from pytest_snapshot.plugin import Snapshot
 
 from multilens.constructs.image_convert import ImageConvert

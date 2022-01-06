@@ -14,7 +14,6 @@ from aws_lambda_powertools.utilities.batch import (
     BatchProcessor,
     EventType,
     FailureResponse,
-    SuccessResponse,
 )
 from aws_lambda_powertools.utilities.data_classes.sqs_event import SQSRecord
 from aws_lambda_powertools.utilities.typing import LambdaContext
@@ -154,9 +153,7 @@ class SqsImageConvertProcessor(ImageConvertProcessor):
         records: typing.List[typing.Dict[str, typing.Any]],
     ) -> None:
         with processor(records=records, handler=self._record_handler):
-            processed_messages: typing.List[
-                typing.Union[SuccessResponse, FailureResponse]
-            ] = processor.process()
+            processed_messages = processor.process()
             logger.debug(processed_messages)
 
 
@@ -170,11 +167,14 @@ def lambda_handler(event, context: LambdaContext) -> None:
     except ValueError:
         format = None
     try:
-        resize = int(os.getenv("APP_RESIZE"))
+        resize = int(os.getenv("APP_RESIZE", 0))
     except (ValueError, TypeError):
         resize = None
+    else:
+        if resize is not None and resize <= 0:
+            resize = None
     config = ConvertConfig(
-        bucket_name=os.getenv("BUCKET_NAME"),
+        bucket_name=os.environ["BUCKET_NAME"],
         format=format,
         resize=resize,
     )

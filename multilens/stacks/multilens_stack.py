@@ -1,7 +1,4 @@
-from aws_cdk import (
-    aws_s3 as s3,
-    Stack,
-)
+from aws_cdk import Stack, aws_s3 as s3
 from constructs import Construct
 
 from multilens.constructs.image_convert import ImageConvert
@@ -18,7 +15,7 @@ class MultilensStack(Stack):
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        line_api = LineApi(
+        LineApi(
             self,
             "LineApi",
             line_credential=line_credential,
@@ -26,7 +23,7 @@ class MultilensStack(Stack):
             lambda_log_level="DEBUG",
         )
 
-        image_convert = ImageConvert(
+        ImageConvert(
             self,
             "ImageConvert",
             use_sqs=False,

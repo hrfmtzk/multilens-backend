@@ -231,7 +231,10 @@
           "Ref": "LineApiDeployment2A5ECA0C886b365999a8c759ab958f0adc7de401"
         },
         "StageName": "prod"
-      }
+      },
+      "DependsOn": [
+        "LineApiAccount817FB054"
+      ]
     },
     "LineApicallbackE629A3D5": {
       "Type": "AWS::ApiGateway::Resource",
